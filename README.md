@@ -1,6 +1,6 @@
 # joycontrol
 
-Branch: master->amiibo_edits
+Branch: master->amiibo_edits->web
 
 Emulate Nintendo Switch Controllers over Bluetooth.
 
@@ -21,7 +21,7 @@ sudo apt install python3-dbus libhidapi-hidraw0 libbluetooth-dev bluez
   Python: (a setup.py is present but not yet up to date)  
   Note that pip here _has_ to be run as root, as otherwise the packages are not available to the root user.
 ```bash
-sudo pip3 install aioconsole hid crc8
+sudo -H pip3 install aioconsole hid crc8 aiohttp
 ```
  If you are unsure if the packages are properly installed, try running `sudo python3` and import each using `import package_name`.
 
