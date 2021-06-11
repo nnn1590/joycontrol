@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<script>
+			'use strict';
+			var virtualControllerKeyMap = [
+				// keyboard key [z] => controller button [a]
+				["z", "a"],
+				["x", "b"],
+				["a", "x"],
+				["s", "y"],
+				["q", "plus"],
+				["w", "minus"],
+				["e", "l_stick"],
+				["r", "r_stick"],
+				["c", "l"],
+				["v", "r"],
+				["d", "zl"],
+				["f", "zr"],
+				[" ", "home"],
+				[".", "capture"],
+				["ArrowUp", "up"],
+				["ArrowDown", "down"],
+				["ArrowLeft", "left"],
+				["ArrowRight", "right"]
+			];
+
+			function simplePostUpdateButton(key, event) {
+				const request = new XMLHttpRequest();
+				request.open("POST", `/api/update_button?${key}=${event}`);
+				request.send();
+			}
+
+			document.addEventListener('keydown', (event) => {
+				const keyName = event.key;
+				virtualControllerKeyMap.forEach(key => {
+					if (keyName === key[0]) simplePostUpdateButton(key[1], 'press');
+				});
+			}, false);
+
+			document.addEventListener('keyup', (event) => {
+				const keyName = event.key;
+				virtualControllerKeyMap.forEach(key => {
+					if (keyName === key[0]) simplePostUpdateButton(key[1], 'release');
+				});
+			}, false);
+		</script>
+		<style>
+		/* This code using part of [holo-web](https://github.com/ZMYaro/holo-web).
+
+		The MIT License (MIT)
+
+		Copyright (c) 2012-2015 Zachary Yaro
+
+		Permission is hereby granted, free of charge, to any person obtaining a copy
+		of this software and associated documentation files (the "Software"), to deal
+		in the Software without restriction, including without limitation the rights
+		to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		copies of the Software, and to permit persons to whom the Software is
+		furnished to do so, subject to the following conditions:
+
+		The above copyright notice and this permission notice shall be included in all
+		copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
+		*/
+
+		body {
+			background-image: linear-gradient(#000000, #272D33);
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			color: white;
+			font-family: "Roboto", "Noto Sans", "Droid Sans", sans-serif;
+			margin: 8px;
+		}
+
+		header {
+			margin: 8px -8px;
+			width: calc(100% - 16px);
+			border-bottom: 4px solid #33b5e5;
+			padding: 16px 0;
+			padding-left: 32px;
+		}
+		header > h1 {
+			padding: 0;
+			margin: 0;
+		}
+
+		hr {
+			color: #DDD;
+			border: none;
+			border-top: 1px solid #DDD;
+		}
+
+		input {
+			background: 0;
+			border: 2px solid #DDD;
+		}
+		input:focus {
+			background: 0;
+			box-shadow: 0px 0px 4px 4px #33b5e5;
+		}
+		.dummyinput {
+			font-size: 64px;
+			width: 256px;
+			height: 64px;
+		}
+
+		table {
+			border-collapse: collapse;
+			border: 2px solid #CCC;
+		}
+		th, td {
+			padding: 8px;
+			border: 2px 1px;
+			border-style: dashed;
+			border-color: #CCC #333;
+		}
+		td:first-child{
+			/*text-align: right;*/
+		}
+		tr:nth-child(even) {
+			background: #33b5e530;
+		}
+		thead {
+			border-bottom: 2px solid #33b5e5;
+		}
+		tfoot {
+			border-top: 2px solid #33b5e5;
+		}
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>joycontrol</h1>
+		</header>
+		<noscript>This page needs JavaScript.<br>Please enable JavaScript or use modern browser.<hr></noscript>
+		Dummy text box to display the keyboard:<br><input class="dummyinput" maxlength="0">
+		<hr>
+		<strong>Keymap:</strong><br>
+		<table id="keymap_note" border="1">
+			<thead>
+				<tr>
+					<th>Keyboard</th>
+					<th>Switch controller</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+			<tfoot>
+				<tr>
+					<th>Keyboard</th>
+					<th>Switch controller</th>
+				</tr>
+			</tfoot>
+		</p>
+		<script>
+			virtualControllerKeyMap.forEach(key => {
+				let key0 = (key[0] == " ") ? 'space' : key[0]
+				document.querySelector('#keymap_note > tbody').innerHTML+=`\n<tr><td>${key0}</td><td>${key[1]}</td></tr>`;
+			});
+		</script>
+	</body>
+</html>

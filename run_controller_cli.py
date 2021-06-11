@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 
+from aiohttp import web
 from aioconsole import ainput
 
 import joycontrol.debug as debug
@@ -148,6 +149,41 @@ def ensure_valid_button(controller_state, *buttons):
         if button not in controller_state.button_state.get_available_buttons():
             raise ValueError(f'Button {button} does not exist on {controller_state.get_controller()}')
 
+async def webapi(request):
+    status = 200
+    headers = [
+        ('Content-type', 'text/plain; charset=utf-8'),
+        ('Access-Control-Allow-Origin', '*'),
+        ('Cache-Control', 'no-store')
+    ]
+    responce=""
+    controller_state = request.app['controller_state']
+    if request.path == "/api/update_button":
+        for button in controller_state.button_state.get_available_buttons():
+            if button in request.rel_url.query:
+                print(f"{button}: {request.rel_url.query[button]}")
+                if request.rel_url.query[button] == 'push':
+                    await button_push(controller_state, button)
+                elif request.rel_url.query[button] == 'press':
+                    await button_press(controller_state, button)
+                elif request.rel_url.query[button] == 'release':
+                    await button_release(controller_state, button)
+        responce="OK"
+    else:
+        status = 404
+        responce="Not found"
+
+    return web.Response(text=responce, headers=headers, status=status)
+
+async def webclient(request):
+    status = 200
+    headers = [
+        ('Content-type', 'text/html; charset=utf-8'),
+        ('Access-Control-Allow-Origin', '*')
+    ]
+    with open('index.html', 'rb') as f:
+        body = f.read()
+    return web.Response(body=body, headers=headers, status=status)
 
 async def mash_button(controller_state, button, interval):
     # wait until controller is fully connected
@@ -326,6 +362,22 @@ async def _main(args):
         if args.nfc is not None:
             await cli.commands['nfc'](args.nfc)
 
+        if args.web:
+            webapp = web.Application()
+            webapp['controller_state'] = controller_state
+            webapp.add_routes([web.get(r'/{regex:/*(index.html?)?$}', webclient), web.post(r'/{regex:api(/.*)?$}', webapi), web.get(r'/{regex:api(/.*)?$}', webapi)])
+            runner = web.AppRunner(webapp)
+            await runner.setup()
+
+            webhost = '127.0.0.1'
+            if args.web_allow_outside:
+                webhost = None
+                logger.warning("""\033[93mYou have allowed access from the outside.
+If you open port {port} to the public, someone may be able to manipulate your Switch.
+If you want secure access from the outside, it is better to use SSH tunneling instead.\033[0m""".format(port=args.web))
+            site = web.TCPSite(runner, host=webhost, port=args.web)
+            await site.start()
+
         # run the cli
         try:
             await cli.run()
@@ -351,6 +403,8 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--reconnect_bt_addr', type=str, default=None,
                         help='The Switch console Bluetooth address (or "auto" for automatic detection), for reconnecting as an already paired controller.')
     parser.add_argument('--nfc', type=str, default=None, help="amiibo dump placed on the controller. Äquivalent to the nfc command.")
+    parser.add_argument('-w', '--web', type=int, default=None, help='Launch API server in specified port')
+    parser.add_argument('--web-allow-outside', action='store_true', help='Allow access to API server from outside. It could be dangerous.')
     args = parser.parse_args()
 
     loop = asyncio.get_event_loop()
